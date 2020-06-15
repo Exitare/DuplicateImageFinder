@@ -1,0 +1,27 @@
+<html>
+<head>
+
+</head>
+<body>
+<h1>Output page</h1>
+
+<ul>
+
+    {% for key, images in duplicates.items() %}
+
+    <p>{{ key }}</p>
+    {% for image in images %}
+    <p>{{image}}</p>
+    <img src={{image}}/>
+    {% endfor %}
+
+
+    {% endfor %}
+
+
+</ul>
+
+
+</body>
+
+</html>
