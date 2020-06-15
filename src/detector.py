@@ -11,17 +11,20 @@ from pathlib import Path
 
 duplicates = []
 args = {}
+file_extensions = ("jpg", "jpeg", "png", "gif", "img", "raw", "nef")
+
 
 def file_hash(filepath):
     with open(filepath, 'rb') as f:
         return md5(f.read()).hexdigest()
+
 
 def handle_args():
     """
     Parse the given arguments
     :return:
     """
-    global  args
+    global args
     parser = argparse.ArgumentParser(description='Get the impact of tool features on it\'s runtime.',
                                      epilog='Accepts tsv and csv files')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store', required=False,
@@ -33,28 +36,31 @@ def handle_args():
     args = parser.parse_args()
 
 
-
 def find_duplicates():
     global duplicates
     global args
-    duplicates = []
+    duplicates = dict()
     hash_keys = dict()
 
-    print(args.folder)
+    for subdir, dirs, files in os.walk(args.folder):
+        for file in files:
+            if not file.endswith(file_extensions):
+                continue
 
-    for path in Path(args.folder).iterdir():
-        if os.path.isfile(path):
-            with open(path, 'rb') as f:
-                filehash = hashlib.md5(f.read()).hexdigest()
-                print(filehash)
-            if filehash not in hash_keys:
-                hash_keys[filehash] = path
+            with open(Path(subdir, file), 'rb') as f:
+                file_hash = hashlib.md5(f.read()).hexdigest()
+            if file_hash not in hash_keys:
+                hash_keys[file_hash] = subdir
+                duplicates[file] = [subdir]
             else:
-                duplicates.append((path, hash_keys[filehash]))
+                duplicates[file].append(subdir)
 
+    # Remove images which do not have duplicates
+    for image_name, paths in list(duplicates.items()):
+        if len(paths) <= 1:
+            del duplicates[image_name]
 
     print(duplicates)
-
 
 
 if __name__ == '__main__':
