@@ -12,8 +12,11 @@ import argparse
 import os
 import hashlib
 from pathlib import Path
+import webbrowser
+import shutil
+from random import randrange
 
-app = Flask(__name__, static_folder='./HTML')
+app = Flask(__name__, static_folder='static')
 api = Api(app)
 
 duplicates = []
@@ -25,6 +28,11 @@ file_extensions = ("jpg", "jpeg", "png", "gif", "img", "raw", "nef")
 def root():
     global duplicates
     return render_template("index.html", duplicates=duplicates)
+
+
+@app.route('/test')
+def test():
+    return send_from_directory("./static", "IMG_1993.jpeg")
 
 
 def file_hash(filepath):
@@ -72,6 +80,7 @@ def find_duplicates():
                 duplicates[file_hash] = [Path(subdir, file)]
             else:
                 print("in")
+                file 
                 duplicates[file_hash].append(Path(subdir, file))
 
     # Remove images which do not have duplicates
@@ -82,7 +91,44 @@ def find_duplicates():
     print(duplicates)
 
 
+def generate_symbolic_link(path: Path):
+    try:
+        os.symlink(path, Path("src", "static", os.path.basename(path)))
+    except FileExistsError:
+        rand = randrange(1000)
+        extension = os.path.splitext(os.path.basename(path))[1]
+        name = os.path.splitext(os.path.basename(path))[0]
+        os.symlink(path, Path("src", "static", f"{name}_{rand}{extension}"))
+
+
+def symbol_links():
+    global duplicates
+    for key, images in list(duplicates.items()):
+        for image in images:
+            try:
+                os.symlink(image, Path("src", "static", os.path.basename(image)))
+            except FileExistsError:
+                rand = randrange(1000)
+                extension = os.path.splitext(os.path.basename(image))[1]
+                name = os.path.splitext(os.path.basename(image))[0]
+                os.symlink(image, Path("src", "static", f"{name}_{rand}{extension}"))
+
+
 if __name__ == '__main__':
+    path = Path("src", "static")
+    if path.exists():
+        for subdir, dirs, files in os.walk(path):
+            for file in files:
+                print(file)
+                try:
+                    print("in here")
+                    os.unlink(Path(path, file))
+                except:
+                    continue
+    else:
+        os.mkdir(path)
+
     handle_args()
     find_duplicates()
-    app.run(use_reloader=True)
+    symbol_links()
+    app.run(use_reloader=False)
