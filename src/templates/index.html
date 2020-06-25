@@ -1,6 +1,15 @@
 <html>
 <head>
+    <style>
+label::before {
+    background-image: url(../path/to/unchecked.png);
+}
 
+:checked + label::before {
+    background-image: url(../path/to/checked.png);
+}
+
+    </style>
 </head>
 <body>
 <h1>Output page</h1>
@@ -10,7 +19,10 @@
 
     <p>{{ key }}</p>
     {% for image in images %}
-    <p>{{image}}</p>
+
+    <input type="checkbox" id="myCheckbox1"/>
+    <label for="myCheckbox1"><img src="http://someurl"/></label>
+    <p>{{image.get('OriginalPath')}}</p>
     <img src={{image}}/>
     {% endfor %}
 

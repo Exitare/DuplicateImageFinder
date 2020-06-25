@@ -5,6 +5,8 @@ import os
 import hashlib
 from pathlib import Path
 from random import randrange
+from Globals import Globals
+from Entities.Image import Image
 
 app = Flask(__name__, static_folder='static')
 api = Api(app)
@@ -17,7 +19,7 @@ file_extensions = ("jpg", "jpeg", "png", "gif", "img", "raw", "nef")
 @app.route('/')
 def root():
     global duplicates
-    return render_template("index.html", duplicates=duplicates)
+    return render_template("index.html", duplicates=Globals.duplicates)
 
 
 def file_hash(file_path: str):
@@ -55,22 +57,22 @@ def find_duplicates():
 
             with open(Path(subdir, file), 'rb') as f:
                 file_hash = hashlib.md5(f.read()).hexdigest()
-                print(file_hash)
             if file_hash not in hash_keys:
                 hash_keys[file_hash] = subdir
-                duplicates[file_hash] = [
-                    {"OriginalPath:": Path(subdir, file), "symlink": None}]
+
+                # Create image entity and append to duplicates
+                image = Image(Path(subdir, file))
+                Globals.duplicates.append(image)
             else:
-                duplicates[file_hash].append(
-                    {"OriginalPath:": Path(subdir, file), "symlink": None})
+                # Create image entity and append to duplicates
+                image = Image(Path(subdir, file))
+                Globals.duplicates.append(image)
 
     # Remove images which do not have duplicates
-    for image_name, paths in list(duplicates.items()):
+    for  in list(Globals.duplicates):
         # TODO: Remove symlinks if no duplicates found
         if len(paths) <= 1:
             del duplicates[image_name]
-
-    print(duplicates)
 
 
 def generate_symbolic_link(path: Path):
@@ -95,14 +97,22 @@ def generate_symbolic_link(path: Path):
 def symbol_links():
     global duplicates
     for key, images in list(duplicates.items()):
-        for image in images:
+        for path in images:
+            source_path = path.get('OriginalPath')
             try:
-                os.symlink(image, Path("src", "static", os.path.basename(image)))
+
+                os.symlink(source_path, Path("src", "static", os.path.basename(source_path)))
             except FileExistsError:
                 rand = randrange(1000)
-                extension = os.path.splitext(os.path.basename(image))[1]
-                name = os.path.splitext(os.path.basename(image))[0]
-                os.symlink(image, Path("src", "static", f"{name}_{rand}{extension}"))
+                extension = os.path.splitext(os.path.basename(source_path))[1]
+                name = os.path.splitext(os.path.basename(source_path))[0]
+                os.symlink(source_path, Path("src", "static", f"{name}_{rand}{extension}"))
+                continue
+
+            except KeyError:
+                print("Could not extract key from dictionary. Skipping...")
+                continue
+    print(duplicates)
 
 
 def clean_folder(path: Path):
@@ -124,5 +134,6 @@ if __name__ == '__main__':
 
     handle_args()
     find_duplicates()
-    # symbol_links()
+    symbol_links()
+
     app.run(use_reloader=False)
