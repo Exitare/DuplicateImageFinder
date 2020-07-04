@@ -1,2 +1,2 @@
-duplicates = []
+duplicates = list()
 args = []

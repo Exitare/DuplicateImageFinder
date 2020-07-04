@@ -7,18 +7,16 @@ from pathlib import Path
 from random import randrange
 from Globals import Globals
 from Entities.Image import Image
+from Entities.Duplicate import Duplicate
 
 app = Flask(__name__, static_folder='static')
 api = Api(app)
 
-duplicates = []
-args = {}
 file_extensions = ("jpg", "jpeg", "png", "gif", "img", "raw", "nef")
 
 
 @app.route('/')
 def root():
-    global duplicates
     return render_template("index.html", duplicates=Globals.duplicates)
 
 
@@ -32,23 +30,20 @@ def handle_args():
     Parse the given arguments
     :return:
     """
-    global args
     parser = argparse.ArgumentParser(description='Get the impact of tool features on it\'s runtime.',
                                      epilog='Accepts tsv and csv files')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store', required=False,
                         help="Enables the verbose mode. With active verbose mode additional information is shown in the console")
     parser.add_argument('-f', '--folder', dest='folder', default=False, required=True,
                         help="The folder which should be checked for duplicates")
-    args = parser.parse_args()
+    Globals.args = parser.parse_args()
 
 
 def find_duplicates():
-    global duplicates
-    global args
-    duplicates = dict()
+    # duplicates = dict()
     hash_keys = dict()
 
-    folder = Path(args.folder)
+    folder = Path(Globals.args.folder)
     # walk the dirs and find duplicates
     for subdir, dirs, files in os.walk(folder):
         for file in files:
@@ -62,61 +57,58 @@ def find_duplicates():
 
                 # Create image entity and append to duplicates
                 image = Image(Path(subdir, file))
-                Globals.duplicates.append(image)
+                duplicate = Duplicate(file_hash)
+                duplicate.images.append(image)
+                Globals.duplicates.append(duplicate)
             else:
                 # Create image entity and append to duplicates
                 image = Image(Path(subdir, file))
-                Globals.duplicates.append(image)
+                duplicate = find_duplicate(file_hash)
+                duplicate.images.append(image)
 
     # Remove images which do not have duplicates
-    for  in list(Globals.duplicates):
+    for duplicate in Globals.duplicates:
         # TODO: Remove symlinks if no duplicates found
-        if len(paths) <= 1:
-            del duplicates[image_name]
+        if len(duplicate.images) <= 1:
+            duplicate.valid = False
+
+    Globals.duplicates = [duplicate for duplicate in Globals.duplicates if duplicate.valid]
 
 
-def generate_symbolic_link(path: Path):
-    """
-    Generates a symbolic link for each image
-    :param path:
-    :return:
-    """
-    try:
-        sym_path = Path("src", "static", os.path.basename(str(path)))
-        os.symlink(str(path), sym_path)
-        return sym_path
-    except FileExistsError:
-        rand = randrange(1000)
-        extension = os.path.splitext(os.path.basename(str(path)))[1]
-        name = os.path.splitext(os.path.basename(str(path)))[0]
-        sym_path = Path("src", "static", f"{name}_{rand}{extension}")
-        os.symlink(str(path), sym_path)
-        return sym_path
+def create_symbolic_links():
+    for duplicate in Globals.duplicates:
+        for image in duplicate.images:
 
-
-def symbol_links():
-    global duplicates
-    for key, images in list(duplicates.items()):
-        for path in images:
-            source_path = path.get('OriginalPath')
+            source_path = image.path
+            print(source_path)
+            input()
             try:
-
+                print(Path("src", "static", os.path.basename(source_path)))
+                input()
                 os.symlink(source_path, Path("src", "static", os.path.basename(source_path)))
+                image.symlink = Path("src", "static", os.path.basename(source_path))
             except FileExistsError:
                 rand = randrange(1000)
                 extension = os.path.splitext(os.path.basename(source_path))[1]
                 name = os.path.splitext(os.path.basename(source_path))[0]
                 os.symlink(source_path, Path("src", "static", f"{name}_{rand}{extension}"))
+                image.symlink = Path("src", "static", f"{name}_{rand}{extension}")
                 continue
 
             except KeyError:
                 print("Could not extract key from dictionary. Skipping...")
                 continue
-    print(duplicates)
+
+    for duplicate in Globals.duplicates:
+        print(duplicate.hash_sum)
+        for image in duplicate.images:
+            print(image.symlink)
 
 
-def clean_folder(path: Path):
-    pass
+def find_duplicate(hash_sum: str):
+    for duplicate in Globals.duplicates:
+        if duplicate.hash_sum == hash_sum:
+            return duplicate
 
 
 if __name__ == '__main__':
@@ -134,6 +126,6 @@ if __name__ == '__main__':
 
     handle_args()
     find_duplicates()
-    symbol_links()
+    create_symbolic_links()
 
     app.run(use_reloader=False)

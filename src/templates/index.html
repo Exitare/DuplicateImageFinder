@@ -9,20 +9,19 @@ label::before {
     background-image: url(../path/to/checked.png);
 }
 
+
     </style>
 </head>
 <body>
 <h1>Output page</h1>
 <ul>
 
-    {% for key, images in duplicates.items() %}
+    {% for duplicate in duplicates %}
 
-    <p>{{ key }}</p>
-    {% for image in images %}
-
+    {% for image in duplicate.images %}
+    <p>{{image.symlink}}</p>
     <input type="checkbox" id="myCheckbox1"/>
-    <label for="myCheckbox1"><img src="http://someurl"/></label>
-    <p>{{image.get('OriginalPath')}}</p>
+    <label for="myCheckbox1"><img src={{image.symlink}}></label>
     <img src={{image}}/>
     {% endfor %}
 
