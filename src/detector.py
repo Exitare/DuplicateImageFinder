@@ -8,6 +8,8 @@ from random import randrange
 from Globals import Globals
 from Entities.Image import Image
 from Entities.Duplicate import Duplicate
+from Services import FileService
+import sys
 
 app = Flask(__name__, static_folder='static')
 api = Api(app)
@@ -75,36 +77,6 @@ def find_duplicates():
     Globals.duplicates = [duplicate for duplicate in Globals.duplicates if duplicate.valid]
 
 
-def create_symbolic_links():
-    for duplicate in Globals.duplicates:
-        for image in duplicate.images:
-
-            source_path = image.path
-            print(source_path)
-            input()
-            try:
-                print(Path("src", "static", os.path.basename(source_path)))
-                input()
-                os.symlink(source_path, Path("src", "static", os.path.basename(source_path)))
-                image.symlink = Path("src", "static", os.path.basename(source_path))
-            except FileExistsError:
-                rand = randrange(1000)
-                extension = os.path.splitext(os.path.basename(source_path))[1]
-                name = os.path.splitext(os.path.basename(source_path))[0]
-                os.symlink(source_path, Path("src", "static", f"{name}_{rand}{extension}"))
-                image.symlink = Path("src", "static", f"{name}_{rand}{extension}")
-                continue
-
-            except KeyError:
-                print("Could not extract key from dictionary. Skipping...")
-                continue
-
-    for duplicate in Globals.duplicates:
-        print(duplicate.hash_sum)
-        for image in duplicate.images:
-            print(image.symlink)
-
-
 def find_duplicate(hash_sum: str):
     for duplicate in Globals.duplicates:
         if duplicate.hash_sum == hash_sum:
@@ -112,20 +84,13 @@ def find_duplicate(hash_sum: str):
 
 
 if __name__ == '__main__':
-    path = Path("src", "static")
-    if path.exists():
-        for subdir, dirs, files in os.walk(path):
-            for file in files:
-                print(file)
-                try:
-                    os.unlink(Path(path, file))
-                except:
-                    continue
-    else:
-        os.mkdir(path)
+    Globals.static_path = Path(FileService.split_path(sys.argv[0]))
+    print(Globals.static_path)
+    input()
+    FileService.prepare_static_folder()
 
     handle_args()
     find_duplicates()
-    create_symbolic_links()
+    FileService.create_symbolic_links()
 
     app.run(use_reloader=False)
