@@ -20,12 +20,8 @@ def prepare_static_folder():
 def create_symbolic_links():
     for duplicate in Globals.duplicates:
         for image in duplicate.images:
-
             source_path = image.path
             try:
-                print(Globals.static_path)
-                print(Path(Globals.static_path, os.path.basename(source_path)))
-                input()
                 os.symlink(source_path, Path(Globals.static_path, os.path.basename(source_path)))
                 image.symlink = Path(Globals.static_path, os.path.basename(source_path))
             except FileExistsError:
@@ -39,11 +35,6 @@ def create_symbolic_links():
             except KeyError:
                 print("Could not extract key from dictionary. Skipping...")
                 continue
-
-    for duplicate in Globals.duplicates:
-        print(duplicate.hash_sum)
-        for image in duplicate.images:
-            print(image.symlink)
 
 
 def split_path(path: str):

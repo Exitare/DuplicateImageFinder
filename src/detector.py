@@ -84,7 +84,7 @@ def find_duplicate(hash_sum: str):
 
 
 if __name__ == '__main__':
-    Globals.static_path = Path(FileService.split_path(sys.argv[0]))
+    Globals.static_path = Path(FileService.split_path(sys.argv[0])[0], "static")
     print(Globals.static_path)
     input()
     FileService.prepare_static_folder()
