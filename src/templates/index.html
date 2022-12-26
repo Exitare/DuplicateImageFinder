@@ -18,6 +18,11 @@ label::before {
 
 
 
+
+
+
+
+
     </style>
 </head>
 <body>
@@ -25,9 +30,36 @@ label::before {
 <div class="container py-5">
     <div class="row ">
         <h1 style="text-align: center;">Output page</h1>
+    </div>
+</div>
 
+<div class="container">
+    <div class="row">
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">Path</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for path in search_paths %}
+            <tr>
+                <th>{{path}}</th>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
 
+    <div class="row">
+        <div class="col">
+            <form method="post" action="/">
+                <input type="text" id="name" name="new_path" required
+                       minlength="4" maxlength="500" size="200">
+                <input type="submit" value="Add"/>
+            </form>
+        </div>
+    </div>
 </div>
 
 <div class="container-fluid">
