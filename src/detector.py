@@ -11,7 +11,7 @@ from Entities.Duplicate import Duplicate
 from Services import FileService
 import sys
 
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__)
 api = Api(app)
 
 file_extensions = ("jpg", "jpeg", "png", "gif", "img", "raw", "nef")
@@ -86,11 +86,12 @@ def find_duplicate(hash_sum: str):
 if __name__ == '__main__':
     Globals.static_path = Path(FileService.split_path(sys.argv[0])[0], "static")
     print(Globals.static_path)
-    input()
     FileService.prepare_static_folder()
 
     handle_args()
+    print("searching duplicates...")
     find_duplicates()
     FileService.create_symbolic_links()
+
 
     app.run(use_reloader=False)

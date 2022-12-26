@@ -1,5 +1,5 @@
 from pathlib import Path
 
-duplicates = list()
+duplicates = []
 args = []
 static_path = Path()

@@ -10,25 +10,25 @@ label::before {
 }
 
 
+
     </style>
 </head>
 <body>
 <h1>Output page</h1>
 <ul>
+    <li>
+        {% for duplicate in duplicates %}
 
-    {% for duplicate in duplicates %}
-
-    {% for image in duplicate.images %}
-    <p>{{image.symlink}}</p>
-    <input type="checkbox" id="myCheckbox1"/>
-    <label for="myCheckbox1"><img src={{image.symlink}}></label>
-    <img src={{image}}/>
-    {% endfor %}
-
-
-    {% endfor %}
+        {% for image in duplicate.images %}
+        <p>{{image.link}}</p>
+        <input type="checkbox" id="myCheckbox1"/>
+        <img src={{image.symlink}}/>
+        {% endfor %}
 
 
+        {% endfor %}
+
+    </li>
 </ul>
 
 
