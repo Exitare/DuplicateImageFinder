@@ -1,7 +1,8 @@
 from pathlib import Path
+from typing import Dict
 
 
 class Statics:
-    duplicates = []
+    duplicates: Dict = {}
     args = []
     static_path = Path()
