@@ -1,17 +1,16 @@
-from flask import Flask, send_from_directory, render_template
+from flask import Flask, render_template
 from flask_restful import Api
 import argparse
 import os
 import hashlib
 from pathlib import Path
-from random import randrange
-from Globals import Globals
-from Entities.Image import Image
-from Entities.Duplicate import Duplicate
-from Services import FileService
+from src import file_service, duplicate_finder, Image, Duplicate, Statics
 import sys
 
-app = Flask(__name__)
+template_path = Path("src", "templates").absolute()
+static_path = Path("src", "static").absolute()
+
+app = Flask(__name__, template_folder=template_path, static_folder=f"{static_path}")
 api = Api(app)
 
 file_extensions = ("jpg", "jpeg", "png", "gif", "img", "raw", "nef")
@@ -19,12 +18,7 @@ file_extensions = ("jpg", "jpeg", "png", "gif", "img", "raw", "nef")
 
 @app.route('/')
 def root():
-    return render_template("index.html", duplicates=Globals.duplicates)
-
-
-def file_hash(file_path: str):
-    with open(file_path, 'rb') as f:
-        return md5(f.read()).hexdigest()
+    return render_template("index.html", duplicates=Statics.duplicates)
 
 
 def handle_args():
@@ -38,14 +32,14 @@ def handle_args():
                         help="Enables the verbose mode. With active verbose mode additional information is shown in the console")
     parser.add_argument('-f', '--folder', dest='folder', default=False, required=True,
                         help="The folder which should be checked for duplicates")
-    Globals.args = parser.parse_args()
+    Statics.args = parser.parse_args()
 
 
 def find_duplicates():
     # duplicates = dict()
     hash_keys = dict()
 
-    folder = Path(Globals.args.folder)
+    folder = Path(Statics.args.folder)
     # walk the dirs and find duplicates
     for subdir, dirs, files in os.walk(folder):
         for file in files:
@@ -58,40 +52,39 @@ def find_duplicates():
                 hash_keys[file_hash] = subdir
 
                 # Create image entity and append to duplicates
-                image = Image(Path(subdir, file).absolute())
+                image = Image(path=Path(subdir, file).absolute())
                 duplicate = Duplicate(file_hash)
                 duplicate.images.append(image)
-                Globals.duplicates.append(duplicate)
+                Statics.duplicates.append(duplicate)
             else:
                 # Create image entity and append to duplicates
-                image = Image(Path(subdir, file).absolute())
-                duplicate = find_duplicate(file_hash)
+                image = Image(path=Path(subdir, file).absolute())
+                duplicate = compare_hash_sum(file_hash)
                 duplicate.images.append(image)
 
     # Remove images which do not have duplicates
-    for duplicate in Globals.duplicates:
-        # TODO: Remove symlinks if no duplicates found
+    duplicate: Duplicate
+    for duplicate in Statics.duplicates:
         if len(duplicate.images) <= 1:
-            duplicate.valid = False
+            duplicate.is_duplicate = False
 
-    Globals.duplicates = [duplicate for duplicate in Globals.duplicates if duplicate.valid]
+    Statics.duplicates = [duplicate for duplicate in Statics.duplicates if duplicate.is_duplicate]
 
-
-def find_duplicate(hash_sum: str):
-    for duplicate in Globals.duplicates:
+def compare_hash_sum(hash_sum: str):
+    for duplicate in Statics.duplicates:
         if duplicate.hash_sum == hash_sum:
             return duplicate
 
 
 if __name__ == '__main__':
-    Globals.static_path = Path(FileService.split_path(sys.argv[0])[0], "static")
-    print(Globals.static_path)
-    FileService.prepare_static_folder()
+    Statics.static_path = Path(file_service.split_path(sys.argv[0])[0], "src/static")
+    print(Statics.static_path)
+    file_service.prepare_static_folder()
 
     handle_args()
     print("searching duplicates...")
     find_duplicates()
-    FileService.create_symbolic_links()
+    file_service.create_symbolic_links()
 
 
     app.run(use_reloader=False)
