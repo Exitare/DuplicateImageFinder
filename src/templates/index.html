@@ -1,5 +1,11 @@
 <html>
 <head>
+    <head>
+        <title>Image Duplicate Management</title>
+
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head>
     <style>
 label::before {
     background-image: url(../path/to/unchecked.png);
@@ -11,25 +17,36 @@ label::before {
 
 
 
+
     </style>
 </head>
 <body>
-<h1>Output page</h1>
-<ul>
-    <li>
-        {% for duplicate in duplicates %}
 
+<div class="container py-5">
+    <div class="row ">
+        <h1 style="text-align: center;">Output page</h1>
+
+    </div>
+
+</div>
+
+<div class="container-fluid">
+    {% for duplicate in duplicates %}
+    <div class="row">
         {% for image in duplicate.images %}
-        <p>{{image.link}}</p>
-        <input type="checkbox" id="myCheckbox1"/>
-        <img src={{image.symlink}}/>
+        <div class="col">
+
+            <p>{{image.link}}</p>
+            <input type="checkbox" id="myCheckbox1"/>
+            <p> {{image.path}}</p>
+            <img src={{image.symlink}} class="img-thumbnail" width="120" height="90"/>
+
+        </div>
         {% endfor %}
+    </div>
 
-
-        {% endfor %}
-
-    </li>
-</ul>
+    {% endfor %}
+</div>
 
 
 </body>

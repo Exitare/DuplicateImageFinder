@@ -58,13 +58,13 @@ def find_duplicates():
                 hash_keys[file_hash] = subdir
 
                 # Create image entity and append to duplicates
-                image = Image(Path(subdir, file))
+                image = Image(Path(subdir, file).absolute())
                 duplicate = Duplicate(file_hash)
                 duplicate.images.append(image)
                 Globals.duplicates.append(duplicate)
             else:
                 # Create image entity and append to duplicates
-                image = Image(Path(subdir, file))
+                image = Image(Path(subdir, file).absolute())
                 duplicate = find_duplicate(file_hash)
                 duplicate.images.append(image)
 

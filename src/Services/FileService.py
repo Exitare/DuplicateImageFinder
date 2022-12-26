@@ -20,7 +20,7 @@ def prepare_static_folder():
 def create_symbolic_links():
     for duplicate in Globals.duplicates:
         for image in duplicate.images:
-            source_path = Path(image.path.absolute())
+            source_path = Path(image.path)
 
             try:
                 destination_path = Path(Globals.static_path, os.path.basename(Path(*source_path.parts[1:])))
