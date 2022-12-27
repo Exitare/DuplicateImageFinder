@@ -17,25 +17,19 @@ label::before {
 
 
 
-
-
-
-
-
-
     </style>
 </head>
 <body>
 
 <div class="container py-5">
     <div class="row ">
-        <h1 style="text-align: center;">Output page</h1>
+        <h1 style="text-align: center;">Duplicate Image Finder</h1>
     </div>
 </div>
 
 <div class="container">
     <div class="row">
-        <table class="table">
+        <table class="table table-striped">
             <thead>
             <tr>
                 <th scope="col">Path</th>
@@ -60,24 +54,34 @@ label::before {
             </form>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col">
+            <button type="submit" class="btn btn-primary" form="duplicateForm">Search duplicates</button>
+            <button type="submit" class="btn btn-primary" form="duplicateForm">Delete selected</button>
+        </div>
+    </div>
 </div>
 
 <div class="container-fluid">
-    {% for duplicate in duplicates %}
-    <div class="row">
-        {% for image in duplicate.images %}
-        <div class="col">
+    <form  id="duplicateForm" action="/duplicates" method="post">
+        {% for duplicate in duplicates.values() %}
+        <div class="row">
+            {% for image in duplicate.images %}
+            <div class="col">
+                <p>{{image.link}}</p>
+                <input type="checkbox" id="checkbox" name="{{image.path}}||{{duplicate.hash_sum}}"/>
+                <p> {{image.path}}</p>
+                <img src={{image.symlink}} class="img-thumbnail" width="120" height="90"/>
+            </div>
+            {% endfor %}
 
-            <p>{{image.link}}</p>
-            <input type="checkbox" id="myCheckbox1"/>
-            <p> {{image.path}}</p>
-            <img src={{image.symlink}} class="img-thumbnail" width="120" height="90"/>
-
+            <hr>
         </div>
-        {% endfor %}
-    </div>
 
-    {% endfor %}
+        {% endfor %}
+
+    </form>
 </div>
 
 

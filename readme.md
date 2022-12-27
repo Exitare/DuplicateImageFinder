@@ -2,5 +2,5 @@
 
 ## Demo Usage
 
-1.  python3 .\src\detector.py --folder .\examples\
+1.  python3 .\detector.py
 

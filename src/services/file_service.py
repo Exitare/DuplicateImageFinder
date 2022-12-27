@@ -22,7 +22,7 @@ class FileService:
 
     @staticmethod
     def create_symbolic_links():
-        for duplicate in Statics.duplicates:
+        for key, duplicate in Statics.duplicates.items():
             image: Image
             for image in duplicate.images:
                 source_path = Path(image.path)

@@ -25,7 +25,7 @@ class DuplicateFinder:
                         continue
 
                     with open(Path(subdir, file), 'rb') as f:
-                        file_hash = hashlib.md5(f.read()).hexdigest()
+                        file_hash: str = hashlib.md5(f.read()).hexdigest()
 
                     if file_hash not in hash_keys:
                         hash_keys[file_hash] = [subdir]
@@ -45,4 +45,4 @@ class DuplicateFinder:
                         Statics.duplicates[file_hash].images.append(image)
 
         # Only keep real duplicates
-        Statics.duplicates = [duplicate for duplicate in Statics.duplicates.values() if len(duplicate.images) > 1]
+        Statics.duplicates = {key: duplicate for (key,duplicate) in Statics.duplicates.items() if len(duplicate.images) > 1}
